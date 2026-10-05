@@ -1,0 +1,5 @@
+Cuota de manejo cobrada a 001-1
+Exception in thread "main" java.lang.UnsupportedOperationException: Un CDT no permite retiros antes del vencimiento
+	at CDT.retirar(CDT.java:14)
+	at CobroCuotaManejo.cobrarMensual(CobroCuotaManejo.java:8)
+	at ExperimentoCDT.main(ExperimentoCDT.java:12)

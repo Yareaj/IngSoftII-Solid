@@ -1,0 +1,17 @@
+JUnit version 4.13.2
+.[ORACLE] Conectando a jdbc:oracle:thin:@prod-db:1521/BANCO...
+[ORACLE] INSERT INTO transacciones VALUES ('T-1', 'T-2', 100000.0, 7500.0)
+===== BANCO ANDINO - COMPROBANTE =====
+Origen: T-1
+Destino: T-2
+Monto: $100000.0
+Comisión: $7500.0
+======================================
+[SMS] Conectando al proveedor de mensajería...
+[SMS] Para Prueba: Transferiste $100000.0 a la cuenta T-2
+[AUDITORIA] 2026-10-04T21:06:24.063603727 OTRO_BANCO T-1 -> T-2 $100000.0
+
+Time: 0.062
+
+OK (1 test)
+
