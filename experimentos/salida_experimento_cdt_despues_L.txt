@@ -1,0 +1,9 @@
+experimentos/ExperimentoCDT.java:12: error: incompatible types: inference variable E has incompatible bounds
+        new CobroCuotaManejo().cobrarMensual(List.of(ana, cdtAna, luis, pedro));
+                              ^
+    upper bounds: CuentaTransaccional,Object
+    lower bounds: Cuenta
+  where E is a type-variable:
+    E extends Object declared in method <E>of(E,E,E,E)
+Note: Some messages have been simplified; recompile with -Xdiags:verbose to get full output
+1 error

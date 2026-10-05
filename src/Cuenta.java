@@ -1,9 +1,13 @@
-public class Cuenta {
+/**
+ * Lo que tienen en común todas las cuentas del banco: número, titular, saldo
+ * y que pueden recibir dinero. No todas permiten retirar (ver CuentaTransaccional).
+ */
+public abstract class Cuenta {
     protected final String numero;
     protected final String titular;
     protected double saldo;
 
-    public Cuenta(String numero, String titular, double saldoInicial) {
+    protected Cuenta(String numero, String titular, double saldoInicial) {
         this.numero = numero;
         this.titular = titular;
         this.saldo = saldoInicial;
@@ -18,7 +22,8 @@ public class Cuenta {
         saldo += monto;
     }
 
-    public void retirar(double monto) {
+    /** Descuenta del saldo si alcanza. Solo para uso de las subclases. */
+    protected void debitar(double monto) {
         if (monto > saldo) throw new IllegalStateException("Saldo insuficiente");
         saldo -= monto;
     }

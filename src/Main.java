@@ -3,9 +3,9 @@ import java.util.List;
 
 public class Main {
     public static void main(String[] args) {
-        Cuenta ana = new CuentaAhorros("001-1", "Ana", 2_000_000);
-        Cuenta luis = new CuentaAhorros("001-2", "Luis", 500_000);
-        Cuenta cdtAna = new CDT("CDT-9", "Ana", 10_000_000, LocalDate.now().plusMonths(6));
+        CuentaAhorros ana = new CuentaAhorros("001-1", "Ana", 2_000_000);
+        CuentaAhorros luis = new CuentaAhorros("001-2", "Luis", 500_000);
+        CDT cdtAna = new CDT("CDT-9", "Ana", 10_000_000, LocalDate.now().plusMonths(6));
 
         CatalogoComisiones comisiones = new CatalogoComisiones()
             .registrar("MISMO_BANCO", new SinComision())

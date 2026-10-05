@@ -1,5 +1,13 @@
 import java.time.LocalDate;
 
+/**
+ * Certificado de Depósito a Término. Es una Cuenta (tiene saldo y titular),
+ * pero NO una CuentaTransaccional: no se puede usar como origen de
+ * transferencias ni se le cobra cuota de manejo, y el compilador lo impide.
+ *
+ * Al vencimiento el cliente puede redimirlo. Esa es una operación propia del
+ * CDT, con su propia regla, no un "retirar" heredado que a veces explota.
+ */
 public class CDT extends Cuenta {
     private final LocalDate vencimiento;
 
@@ -8,12 +16,16 @@ public class CDT extends Cuenta {
         this.vencimiento = vencimiento;
     }
 
-    @Override
-    public void retirar(double monto) {
-        if (LocalDate.now().isBefore(vencimiento)) {
-            throw new UnsupportedOperationException(
-                "Un CDT no permite retiros antes del vencimiento");
+    public LocalDate getVencimiento() { return vencimiento; }
+
+    public boolean estaVencido() {
+        return !LocalDate.now().isBefore(vencimiento);
+    }
+
+    public void redimir(double monto) {
+        if (!estaVencido()) {
+            throw new IllegalStateException("Un CDT no permite retiros antes del vencimiento");
         }
-        super.retirar(monto);
+        debitar(monto);
     }
 }

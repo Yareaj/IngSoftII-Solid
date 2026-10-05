@@ -13,7 +13,7 @@ public class TransaccionService {
         this.comisiones = comisiones;
     }
 
-    public void transferir(Cuenta origen, Cuenta destino, double monto, String tipo) {
+    public void transferir(CuentaTransaccional origen, Cuenta destino, double monto, String tipo) {
         validador.validar(monto);
         double comision = comisiones.calcular(tipo, monto);
 

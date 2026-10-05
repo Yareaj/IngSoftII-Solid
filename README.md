@@ -176,3 +176,56 @@ modificar?*
   `Main.java`** (una línea `.registrar(...)`). Cero archivos nuevos.
 - Si es una forma nueva de calcular (p. ej. por rangos de monto): un archivo nuevo que
   implemente `PoliticaComision` y una línea en `Main.java`. Ningún otro existente.
+
+### Punto de control L
+
+El problema era que `CDT extends Cuenta` heredaba una promesa ("me puedes retirar") que no
+puede cumplir. Lo resolvimos separando dos ideas que estaban mezcladas en `Cuenta`:
+
+- `Cuenta` (ahora abstracta): número, titular, saldo y `depositar`. Todo producto de depósito
+  lo tiene, incluido el CDT.
+- `CuentaTransaccional extends Cuenta`: agrega `retirar`. Es lo que piden
+  `TransaccionService` (como origen) y `CobroCuotaManejo`.
+- `CuentaAhorros extends CuentaTransaccional`.
+- `CDT extends Cuenta` (no transaccional). Para no perder lo que el CDT sí permitía —sacar
+  la plata al vencimiento— le dimos una operación propia, `redimir`, que solo existe en `CDT`.
+
+En `CuentaTransaccional` dejamos escrito el **contrato** de `retirar` en el Javadoc: puede
+rechazar la operación con `IllegalStateException` sin cambiar el saldo (p. ej. saldo
+insuficiente), pero nunca decir "no sé retirar". Lo escribimos porque nos dimos cuenta de que
+LSP se trata de no romper lo que el cliente espera, y si eso no está escrito en ningún lado
+cada quien entiende lo que quiere.
+
+Repetimos el experimento 1 con el código nuevo
+(`experimentos/salida_experimento_cdt_despues_L.txt`):
+
+```
+experimentos/ExperimentoCDT.java:12: error: incompatible types: inference variable E has incompatible bounds
+        new CobroCuotaManejo().cobrarMensual(List.of(ana, cdtAna, luis, pedro));
+    upper bounds: CuentaTransaccional,Object
+    lower bounds: Cuenta
+```
+
+(Por eso `experimentos/` ya no compila con el código nuevo: lo dejamos así a propósito como
+evidencia. `run.sh` y las pruebas no lo incluyen.)
+
+**Pregunta de control.**
+
+*¿Se detecta al compilar o al ejecutar?* Al **compilar**. Es mejor porque el error lo ve el
+desarrollador en su computador, no el proceso nocturno con un millón de cuentas reales. Un
+error de compilación no se puede "olvidar probar"; un error en ejecución solo aparece si alguna
+prueba (o un cliente) pasa justo por ese camino.
+
+*¿Por qué no basta un try/catch que ignore los CDT?*
+1. Arregla el síntoma en un solo lugar: `TransaccionService` (y cualquier clase futura que
+   reciba una `Cuenta`) seguiría pudiendo explotar con un CDT. Cada cliente nuevo tendría que
+   acordarse de poner su propio try/catch.
+2. Atrapar `UnsupportedOperationException` (o peor, `Exception`) también se tragaría errores
+   reales, y la cuenta quedaría sin cobrar sin que nadie se entere.
+3. El diseño seguiría mintiendo: el tipo dice que un CDT es una `Cuenta` que se puede retirar,
+   y no lo es. El try/catch es aceptar que el tipo miente y vivir con eso.
+
+Duda que nos quedó: `CDT.redimir` también lanza excepción si no está vencido. ¿No es lo mismo
+de antes? Concluimos que no: `redimir` es del CDT, nadie lo llama "creyendo que tiene una
+cuenta cualquiera", y su regla (la fecha) es parte de su contrato desde el principio, igual que
+"saldo insuficiente" es parte del contrato de `retirar`.
