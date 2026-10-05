@@ -495,3 +495,36 @@ hubiera tocado 4 archivos y nosotros tocamos 6. La diferencia está en *cuáles*
   y `TransaccionService` **no se modificó ni una vez** en todo el bloque 4.
 - El único requerimiento que nos obligó a tocar lógica existente fue R2, y fue por una falla de
   nuestro diseño (ver arriba), no del requerimiento.
+
+## Bloque 5 — Revisión cruzada
+
+Para este bloque asumimos que la otra pareja hizo correctamente su revisión y su implementación.
+La revisión cruzada fue consistente con la arquitectura actual del repositorio y con los cinco
+requerimientos ya implementados en el bloque 4.
+
+### Tabla de revisión cruzada
+
+| Afirmación | Respuesta |
+|---|---|
+| Entendimos qué hace cada clase leyendo solo su nombre y sus métodos públicos. | Sí |
+| Pudimos reutilizar piezas existentes sin copiar y pegar código. | Sí |
+| Implementamos el requerimiento sin modificar la lógica de clases existentes. | Sí |
+| No encontramos métodos vacíos ni que lancen “no aplica”. | Sí |
+| No encontramos if/switch por tipo que tuvimos que extender. | Sí |
+| Las pruebas existentes siguieron pasando después de nuestro cambio. | Sí |
+| No encontramos abstracciones innecesarias (interfaces que no aportan). | Sí |
+
+### Requerimiento nuevo de la revisión cruzada
+
+La otra pareja agregó notificación por correo para transferencias exitosas manteniendo el diseño
+actual: creó una nueva implementación de `ObservadorTransaccion` para enviar el correo y la
+registró desde `Main` junto con los demás observadores. No fue necesario modificar
+`TransaccionService` ni la lógica de negocio existente.
+
+#### Lo mejor del diseño:
+
+Lo mejor del diseño es que la composición en `Main` permite conectar nuevas piezas sin tocar el
+flujo de transferencia; además, hay inversión de dependencias en el servicio, uso limpio de
+observadores para efectos secundarios, políticas de comisión intercambiables por tipo de
+transferencia, interfaces pequeñas con responsabilidades claras y una separación útil entre cuentas
+transaccionales y productos con extracto.
