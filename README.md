@@ -304,3 +304,55 @@ No conoce `OracleRepositorio`, `SmsGateway` ni `System.out`.
 
 *¿Ya es posible la prueba del experimento 2?* Sí: basta con pasarle un repositorio en memoria y
 un observador que anote en vez de enviar. Es justo lo que hacemos en el bloque 3.
+
+## Bloque 3 — Pruebas unitarias
+
+Framework: JUnit 4.13.2. Ejecutar con `./test.sh`.
+
+Dobles de prueba (en `test/`), todos escritos a mano, sin Mockito:
+
+- `RepositorioEnMemoria`: guarda las transacciones en una lista en vez de Oracle.
+- `ComprobanteEspia`: anota los comprobantes en vez de imprimirlos.
+- `ObservadorEspia`: anota las notificaciones en vez de mandar SMS.
+
+| # | Prueba (`TransaccionServiceTest`) | Qué verifica |
+|---|---|---|
+| 1 | `mismoBancoNoCobraComisionYMueveExactamenteElMonto` | comisión 0; origen −300.000, destino +300.000 |
+| 2 | `otroBancoCobra7500YDescuentaMontoMasComision` | comisión 7.500; origen −107.500; destino solo +100.000 |
+| 3 | `saldoInsuficienteSeRechazaYNoSeGuardaNiSeNotifica` | lanza excepción; nada guardado, ni comprobante, ni notificación; saldos intactos |
+| 4 | `cadaTransferenciaExitosaSeGuardaUnaVezYNotificaUnaVez` | 1 guardado y 1 notificación por transferencia (probado con dos seguidas) |
+| 5 | `tipoDesconocidoSeRechazaYElSaldoNoCambia` | `"CRIPTO"` → excepción; saldo del origen intacto; nada guardado |
+
+Salida:
+
+```
+JUnit version 4.13.2
+.....
+Time: 0.038
+
+OK (5 tests)
+```
+
+Ni una línea de `[ORACLE]` ni de `[SMS]`.
+
+Para estar seguros de que las pruebas sirven (y no pasan "porque sí"), rompimos el código a
+propósito: movimos `repositorio.guardar(t)` antes de `origen.retirar(...)`. La prueba 3 falló
+(`Tests run: 5, Failures: 1`), porque con saldo insuficiente la transacción quedaba guardada
+aunque se rechazara. Volvimos a dejar el código como estaba.
+
+**Pregunta de control.**
+
+*¿Cuánto tardan?* 38 ms las cinco pruebas según JUnit (unos 1,6 s el script completo, pero casi
+todo es compilar y arrancar la JVM).
+
+*¿Cuántas líneas de `TransaccionService` tuvieron que cambiar para poder probarla?* En el
+bloque 3, **ninguna**: las pruebas se escribieron sobre el código de `control-D` sin tocarlo.
+El cambio que lo hizo posible fue el del punto D (pasar de crear las dependencias con `new` a
+recibirlas en el constructor). Comparando `bloque-0-codigo-base` contra `control-D`, la clase
+se reescribió casi entera, pero el método `transferir` quedó en 13 líneas.
+
+*¿Qué habría pasado en el bloque 1?* Lo mismo que en el experimento 2: cada prueba habría
+insertado en la base de producción y mandado SMS reales (cinco pruebas = varias transacciones
+falsas en Oracle y SMS a clientes cada vez que alguien corre las pruebas). Además las pruebas
+3 y 4 ni siquiera se pueden escribir: no hay forma de preguntar "¿se guardó?" o "¿cuántas
+notificaciones salieron?" sin leer la consola o la base de datos real.
