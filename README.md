@@ -374,3 +374,44 @@ contamos el README ni los archivos de prueba nuevos como "existentes modificados
 - Criterio de aceptación: `TransferenciaLlaveTest` verifica que $50.000 por LLAVE descuentan
   exactamente $50.000. Ojo: la prueba arma su propio catálogo, así que no prueba que `Main` haya
   registrado `"LLAVE"`; eso solo se ve leyendo `Main`.
+
+### R2 — Cuenta infantil
+
+- **Estimado en el original:** 0 existentes (bastaba con `class CuentaInfantil extends Cuenta`
+  sobrescribiendo `retirar`) + 1 nuevo. Honestamente, en el original este parecía fácil.
+- **Real en el refactorizado:** 2 existentes modificados (`CuentaTransaccional.java`,
+  `CobroCuotaManejo.java`), 1 nuevo de producción (`CuentaInfantil.java`) y 1 de prueba
+  (`CuentaInfantilTest`, 8 pruebas).
+
+Qué pasó: la primera versión (`CuentaInfantil extends CuentaTransaccional`, con el límite en
+`retirar`) cumplía el criterio de aceptación, era origen de transferencias y se le cobraba la
+cuota. Pero escribimos una prueba más, pensando en el experimento 1: *¿qué pasa si el niño ya
+retiró sus $200.000 hoy y esa noche corre el cobro de cuota?*
+
+```
+1) laCuotaSeCobraAunqueElNinoYaHayaRetiradoElMaximoDelDia(CuentaInfantilTest)
+java.lang.IllegalStateException: Supera el límite diario de retiros de la cuenta infantil
+Tests run: 14,  Failures: 1
+```
+
+El proceso nocturno se volvía a caer, igual que con el CDT. Técnicamente `CuentaInfantil` no
+viola LSP (su rechazo está dentro del contrato que escribimos en `CuentaTransaccional`), pero
+`CobroCuotaManejo` estaba usando `retirar` —una operación pensada para el cliente, con reglas que
+cada producto puede endurecer— para algo que no es un retiro del cliente.
+
+Solución: agregamos `cobrarCargo(monto)` en `CuentaTransaccional`, `final` para que ninguna
+subclase lo pueda restringir, y `CobroCuotaManejo` lo usa en vez de `retirar`. Para las cuentas
+de ahorros el comportamiento es idéntico (`check.sh` sigue en OK).
+
+Esto lo tomamos como una falla de nuestro diseño del punto L: separamos bien "puede retirar /
+no puede retirar", pero no separamos "retiro del cliente" de "cargo del banco". Por eso hubo que
+modificar dos archivos existentes.
+
+Decisiones que tomamos sin que el requerimiento lo dijera (las anotamos para preguntarle al
+"negocio"):
+- La **comisión** de una transferencia sí cuenta para el límite diario (se retira
+  `monto + comisión`), porque sale de la plata del niño por una acción suya.
+- La **cuota de manejo** no cuenta para el límite.
+- Sigue pendiente algo que ya pasaba en el original: si una cuenta **no tiene saldo** para la
+  cuota, el cobro también se cae. No lo cambiamos porque cambiaría el comportamiento, pero es el
+  mismo riesgo.

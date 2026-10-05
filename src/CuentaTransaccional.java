@@ -18,4 +18,14 @@ public abstract class CuentaTransaccional extends Cuenta {
     public void retirar(double monto) {
         debitar(monto);
     }
+
+    /**
+     * Cargo que cobra el banco (p. ej. la cuota de manejo). No es un retiro
+     * del cliente, así que no le aplican las reglas de retiro de cada producto
+     * (como el límite diario de la cuenta infantil); solo necesita saldo.
+     * Es final para que ninguna subclase lo pueda volver a restringir.
+     */
+    public final void cobrarCargo(double monto) {
+        debitar(monto);
+    }
 }

@@ -5,7 +5,7 @@ public class CobroCuotaManejo {
 
     public void cobrarMensual(List<? extends CuentaTransaccional> cuentas) {
         for (CuentaTransaccional cuenta : cuentas) {
-            cuenta.retirar(CUOTA);
+            cuenta.cobrarCargo(CUOTA);
             System.out.println("Cuota de manejo cobrada a " + cuenta.getNumero());
         }
     }
