@@ -20,6 +20,7 @@ public class Main {
             new OracleRepositorio(),
             new ImpresoraComprobante(),
             List.of(new NotificadorSms(new SmsGateway()),
+                    new NotificadorPush(),          // R3
                     new Auditoria()));
 
         servicio.transferir(ana, luis, 150_000, "OTRO_BANCO");

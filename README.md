@@ -415,3 +415,25 @@ Decisiones que tomamos sin que el requerimiento lo dijera (las anotamos para pre
 - Sigue pendiente algo que ya pasaba en el original: si una cuenta **no tiene saldo** para la
   cuota, el cobro también se cae. No lo cambiamos porque cambiaría el comportamiento, pero es el
   mismo riesgo.
+
+### R3 — Notificaciones push
+
+- **Estimado en el original:** 1 existente (`TransaccionService.java`: crear otro gateway con
+  `new` y agregar la llamada después del SMS) + 1 nuevo (`PushGateway`).
+- **Real:** 1 existente (`Main.java`, una línea en la lista de observadores) + 1 nuevo
+  (`NotificadorPush.java`). No se tocó `TransaccionService`.
+- Criterio de aceptación: el diff contra la salida original muestra exactamente una línea más,
+  justo después del SMS:
+
+```
+10a11
+> [PUSH] Para Ana: Transferiste $150000.0 a la cuenta 001-2
+```
+
+Desde aquí `check.sh` "falla" a propósito, porque el negocio sí pidió cambiar la salida.
+Revisamos cada diff a mano en vez de regenerar `salida_original.txt`.
+
+Lo que no nos gustó: el texto "Transferiste $X a la cuenta Y" quedó **repetido** en
+`NotificadorSms` y `NotificadorPush`. Lo vimos y decidimos dejarlo (son dos líneas y sacarlo
+implicaba tocar `NotificadorSms`), pero si el texto cambia hay que acordarse de cambiarlo en dos
+lugares. Lo anotamos como deuda.
