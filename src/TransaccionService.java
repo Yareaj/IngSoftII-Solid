@@ -1,16 +1,26 @@
+import java.util.List;
+
 /**
  * Coordina una transferencia: le pide a cada pieza que haga su parte, en orden.
+ * No crea ninguna de sus dependencias; se las entregan por el constructor.
  */
 public class TransaccionService {
-    private final ValidadorMonto validador = new ValidadorMonto();
+    private final ValidadorMonto validador;
     private final CatalogoComisiones comisiones;
-    private final OracleRepositorio repositorio = new OracleRepositorio();
-    private final ImpresoraComprobante comprobante = new ImpresoraComprobante();
-    private final NotificadorSms notificador = new NotificadorSms();
-    private final Auditoria auditoria = new Auditoria();
+    private final RepositorioTransacciones repositorio;
+    private final Comprobante comprobante;
+    private final List<ObservadorTransaccion> observadores;
 
-    public TransaccionService(CatalogoComisiones comisiones) {
+    public TransaccionService(ValidadorMonto validador,
+                              CatalogoComisiones comisiones,
+                              RepositorioTransacciones repositorio,
+                              Comprobante comprobante,
+                              List<ObservadorTransaccion> observadores) {
+        this.validador = validador;
         this.comisiones = comisiones;
+        this.repositorio = repositorio;
+        this.comprobante = comprobante;
+        this.observadores = List.copyOf(observadores);
     }
 
     public void transferir(CuentaTransaccional origen, Cuenta destino, double monto, String tipo) {
@@ -22,9 +32,8 @@ public class TransaccionService {
 
         Transaccion t = new Transaccion(tipo, origen.getNumero(), destino.getNumero(),
                                         origen.getTitular(), monto, comision);
-        repositorio.guardarTransaccion(t.origen(), t.destino(), t.monto(), t.comision());
-        comprobante.imprimir(t);
-        notificador.notificar(t);
-        auditoria.registrar(t);
+        repositorio.guardar(t);
+        comprobante.emitir(t);
+        observadores.forEach(o -> o.transaccionRealizada(t));
     }
 }

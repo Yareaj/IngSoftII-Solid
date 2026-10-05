@@ -1,6 +1,7 @@
-/** Imprime el comprobante que ve el cliente. */
-public class ImpresoraComprobante {
-    public void imprimir(Transaccion t) {
+/** Imprime el comprobante en consola. */
+public class ImpresoraComprobante implements Comprobante {
+    @Override
+    public void emitir(Transaccion t) {
         System.out.println("===== BANCO ANDINO - COMPROBANTE =====");
         System.out.println("Origen: " + t.origen());
         System.out.println("Destino: " + t.destino());

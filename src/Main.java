@@ -1,6 +1,7 @@
 import java.time.LocalDate;
 import java.util.List;
 
+/** Único lugar donde se decide qué implementación concreta se usa para cada pieza. */
 public class Main {
     public static void main(String[] args) {
         CuentaAhorros ana = new CuentaAhorros("001-1", "Ana", 2_000_000);
@@ -12,7 +13,14 @@ public class Main {
             .registrar("OTRO_BANCO", new ComisionFija(7_500))
             .registrar("INTERNACIONAL", new ComisionPorcentual(0.03, 25_000));
 
-        TransaccionService servicio = new TransaccionService(comisiones);
+        TransaccionService servicio = new TransaccionService(
+            new ValidadorMonto(),
+            comisiones,
+            new OracleRepositorio(),
+            new ImpresoraComprobante(),
+            List.of(new NotificadorSms(new SmsGateway()),
+                    new Auditoria()));
+
         servicio.transferir(ana, luis, 150_000, "OTRO_BANCO");
 
         new CobroCuotaManejo().cobrarMensual(List.of(ana, luis));

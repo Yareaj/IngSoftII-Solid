@@ -268,3 +268,39 @@ Necesitó solo `ConExtracto`. No necesita conocer los demás métodos porque lo 
 con cada producto es pedirle su texto; si dependiera de `depositar` o `pagarCuota`, no podría
 recibir a la vez cosas que tienen unos pero no otros. (Nota: `Main` sigue imprimiendo solo
 tarjeta y crédito, como el original, para que la salida no cambie.)
+
+### Punto de control D
+
+Creamos tres abstracciones y `TransaccionService` las recibe por constructor:
+
+| Abstracción | Implementación en producción |
+|---|---|
+| `RepositorioTransacciones` | `OracleRepositorio` |
+| `Comprobante` | `ImpresoraComprobante` |
+| `ObservadorTransaccion` (lista) | `NotificadorSms` (que a su vez recibe un `SmsGateway`), `Auditoria` |
+
+Además recibe `ValidadorMonto` y `CatalogoComisiones` (de O). Todo se arma en `Main`.
+
+¿Por qué una **lista** de observadores en vez de un `Notificador` y una `Auditoria` por
+separado? Por el hallazgo 4 del diagnóstico: notificar y auditar son "cosas que tienen que
+enterarse de que la transferencia salió bien" y cambian por razones que no tienen nada que ver
+con transferir. Con la lista, si aparece otra cosa que tenga que enterarse, no hay que tocar
+`TransaccionService`. (No sabíamos qué iba a pedir el negocio; fue una apuesta según lo que
+vimos en el diagnóstico.)
+
+`ValidadorMonto` lo inyectamos como clase concreta, sin interfaz: es lógica pura, no se conecta
+a nada externo y no le vimos sentido a una interfaz con una sola implementación posible.
+
+**Pregunta de control.**
+
+*¿Cuántas clases concretas conoce ahora `TransaccionService`?* Crea con `new` **cero**
+dependencias (el único `new` que queda es `new Transaccion(...)`, que es un dato, no una
+dependencia). Conoce por nombre: `ValidadorMonto`, `CatalogoComisiones` y el record
+`Transaccion` (concretos, pero sin infraestructura), y las abstracciones `Cuenta`,
+`CuentaTransaccional`, `RepositorioTransacciones`, `Comprobante` y `ObservadorTransaccion`.
+No conoce `OracleRepositorio`, `SmsGateway` ni `System.out`.
+
+*¿Quién decide si se usa Oracle o si se notifica por SMS?* `Main` (la raíz de composición).
+
+*¿Ya es posible la prueba del experimento 2?* Sí: basta con pasarle un repositorio en memoria y
+un observador que anote en vez de enviar. Es justo lo que hacemos en el bloque 3.
