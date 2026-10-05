@@ -458,3 +458,40 @@ auditoría → antifraude, **si el proveedor de SMS se cae, la transacción no s
 antifraude**, aunque la plata ya se movió. Para algo que es obligatorio por regulación eso es
 grave. En el original pasaba exactamente lo mismo (el SMS iba antes de la auditoría), pero ahora
 que antifraude es regulatorio pesa más. Lo discutimos en el cierre (pregunta c).
+
+### R5 — Migración a PostgreSQL
+
+- **Estimado en el original:** 1 existente (`TransaccionService.java`: cambiar
+  `new OracleRepositorio()` por `new PostgresRepositorio()` y, como el método se llama
+  `guardarTransaccion` con 4 parámetros sueltos, la clase nueva tendría que copiar esa firma) + 1
+  nuevo.
+- **Real:** 1 existente (`Main.java`, una línea) + 1 nuevo (`PostgresRepositorio.java`).
+  `OracleRepositorio.java` no se tocó ni se borró: devolverse es cambiar esa misma línea.
+- Criterio de aceptación: `Main` imprime `[POSTGRES]` en vez de `[ORACLE]` y **las pruebas
+  unitarias no cambiaron**: comparando los commits `req-4` y `req-5`, la carpeta `test/` no
+  tiene ningún cambio, y siguen las 16 en OK.
+  Las pruebas nunca supieron qué base de datos había detrás porque usan `RepositorioEnMemoria`.
+
+La salida completa con los cinco requerimientos quedó en `salida_bloque4.txt`.
+
+### Tabla del bloque 4
+
+| Req. | Archivos a modificar en el código original (estimado) | Archivos existentes modificados (real) | Archivos nuevos | ¿Se rompió alguna prueba? |
+|---|---|---|---|---|
+| R1 | 1 (`TransaccionService`) | 1 (`Main`) | 0 de producción + 1 de prueba | No |
+| R2 | 0 (+1 nuevo) | **2** (`CuentaTransaccional`, `CobroCuotaManejo`) | 1 (`CuentaInfantil`) + 1 de prueba | No de las existentes; sí falló una prueba nueva nuestra, que nos mostró el problema de la cuota |
+| R3 | 1 (`TransaccionService`) + 1 nuevo | 1 (`Main`) | 1 (`NotificadorPush`) | No |
+| R4 | 1 (`TransaccionService`) | 1 (`Main`) | 1 (`SistemaAntifraude`) + 1 de prueba | No |
+| R5 | 1 (`TransaccionService`) + 1 nuevo | 1 (`Main`) | 1 (`PostgresRepositorio`) | No (y no se cambió ninguna) |
+| **Total** | **4** | **6** (4 veces `Main` + 2 de lógica) | 4 de producción + 3 de prueba | |
+
+Lectura honesta de la tabla: **en número de archivos el refactor no "gana"**. El original
+hubiera tocado 4 archivos y nosotros tocamos 6. La diferencia está en *cuáles*:
+
+- En el original, R1, R3, R4 y R5 caen **todos en `TransaccionService`**, la clase que mueve la
+  plata, y cada cambio obliga a volver a probar las transferencias completas (que, además, no se
+  pueden probar sin Oracle ni SMS).
+- En el refactorizado, R1, R3, R4 y R5 solo tocaron `Main` (una línea de configuración cada uno)
+  y `TransaccionService` **no se modificó ni una vez** en todo el bloque 4.
+- El único requerimiento que nos obligó a tocar lógica existente fue R2, y fue por una falla de
+  nuestro diseño (ver arriba), no del requerimiento.

@@ -17,7 +17,7 @@ public class Main {
         TransaccionService servicio = new TransaccionService(
             new ValidadorMonto(),
             comisiones,
-            new OracleRepositorio(),
+            new PostgresRepositorio(),       // R5 (para devolverse: new OracleRepositorio())
             new ImpresoraComprobante(),
             List.of(new NotificadorSms(new SmsGateway()),
                     new NotificadorPush(),          // R3
