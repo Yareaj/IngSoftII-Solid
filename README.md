@@ -356,3 +356,21 @@ insertado en la base de producción y mandado SMS reales (cinco pruebas = varias
 falsas en Oracle y SMS a clientes cada vez que alguien corre las pruebas). Además las pruebas
 3 y 4 ni siquiera se pueden escribir: no hay forma de preguntar "¿se guardó?" o "¿cuántas
 notificaciones salieron?" sin leer la consola o la base de datos real.
+
+## Bloque 4 — "Negocio pidió cambios"
+
+Antes de cada requerimiento miramos el código de `bloque-0-codigo-base` y estimamos cuántos
+archivos existentes habría que modificar allí. Contamos `Main.java` cuando hay que tocarlo, y no
+contamos el README ni los archivos de prueba nuevos como "existentes modificados".
+
+### R1 — Transferencias por llave
+
+- **Estimado en el original:** 1 archivo (`TransaccionService.java`, agregar un `case "LLAVE" -> comision = 0;` al `switch`).
+- **Real en el refactorizado:** 1 existente modificado (`Main.java`: una línea
+  `.registrar("LLAVE", new SinComision())`), 0 archivos nuevos de producción, 1 archivo de
+  prueba nuevo (`TransferenciaLlaveTest`).
+- El número es el mismo (1), pero la diferencia es **cuál** archivo: en el original es la clase
+  que mueve la plata; aquí es la línea de configuración. No se tocó `TransaccionService`.
+- Criterio de aceptación: `TransferenciaLlaveTest` verifica que $50.000 por LLAVE descuentan
+  exactamente $50.000. Ojo: la prueba arma su propio catálogo, así que no prueba que `Main` haya
+  registrado `"LLAVE"`; eso solo se ve leyendo `Main`.

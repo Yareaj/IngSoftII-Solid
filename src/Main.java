@@ -11,7 +11,8 @@ public class Main {
         CatalogoComisiones comisiones = new CatalogoComisiones()
             .registrar("MISMO_BANCO", new SinComision())
             .registrar("OTRO_BANCO", new ComisionFija(7_500))
-            .registrar("INTERNACIONAL", new ComisionPorcentual(0.03, 25_000));
+            .registrar("INTERNACIONAL", new ComisionPorcentual(0.03, 25_000))
+            .registrar("LLAVE", new SinComision()); // R1: transferencias por llave
 
         TransaccionService servicio = new TransaccionService(
             new ValidadorMonto(),
