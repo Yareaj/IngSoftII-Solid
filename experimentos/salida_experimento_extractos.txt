@@ -1,0 +1,4 @@
+Cuenta 001-1 - saldo: $2000000.0
+Cuenta CDT-9 - saldo: $1.0E7
+Tarjeta - deuda: $0.0
+Crédito vivienda - pendiente: $1.2E8

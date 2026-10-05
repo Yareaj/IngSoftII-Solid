@@ -17,8 +17,8 @@ public class Main {
 
         new CobroCuotaManejo().cobrarMensual(List.of(ana, luis));
 
-        List<ProductoBancario> productos =
+        List<ConExtracto> productos =
             List.of(new TarjetaCredito(3_000_000), new CreditoVivienda(120_000_000));
-        for (ProductoBancario p : productos) System.out.println(p.generarExtracto());
+        new GeneradorExtractos().imprimir(productos);
     }
 }

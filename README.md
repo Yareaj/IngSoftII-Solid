@@ -229,3 +229,42 @@ Duda que nos quedó: `CDT.redimir` también lanza excepción si no está vencido
 de antes? Concluimos que no: `redimir` es del CDT, nadie lo llama "creyendo que tiene una
 cuenta cualquiera", y su regla (la fecha) es parte de su contrato desde el principio, igual que
 "saldo insuficiente" es parte del contrato de `retirar`.
+
+### Punto de control I
+
+`ProductoBancario` obligaba a todos a implementar cinco métodos. Lo partimos según **quién usa
+qué**:
+
+| Interfaz | Métodos | La usa |
+|---|---|---|
+| `ConExtracto` | `generarExtracto()` | `GeneradorExtractos` |
+| `ProductoCredito` | `calcularIntereses()`, `pagarCuota()` | (procesos de crédito; hoy nadie la llama, pero agrupa lo que tienen en común tarjeta y crédito) |
+| — (`depositar`/`retirar`) | ya estaban en `Cuenta` / `CuentaTransaccional` | `TransaccionService`, `CobroCuotaManejo` |
+
+- `TarjetaCredito` y `CreditoVivienda` implementan `ProductoCredito` y `ConExtracto`. Se
+  borraron los tres métodos vacíos.
+- El "retirar" de la tarjeta en realidad era un **avance**, así que lo renombramos
+  `realizarAvance` y quedó como método propio de la tarjeta (no le inventamos interfaz porque
+  solo la tarjeta lo tiene).
+- `Cuenta` implementa `ConExtracto` (así lo tienen ahorros, CDT y las cuentas futuras).
+- Se borró `ProductoBancario`.
+
+Dudamos de si `ProductoCredito` era una abstracción innecesaria, porque nadie la usa todavía.
+La dejamos porque reemplaza la parte de `ProductoBancario` que sí era común a tarjeta y crédito,
+pero si en la revisión cruzada nos dicen que sobra, lo aceptamos.
+
+**Pregunta de control.** *¿Un mismo generador sirve para cuentas, tarjetas y créditos?* Sí.
+`experimentos/ExperimentoExtractos.java` le pasa una cuenta de ahorros, un CDT, una tarjeta y
+un crédito al mismo `GeneradorExtractos`:
+
+```
+Cuenta 001-1 - saldo: $2000000.0
+Cuenta CDT-9 - saldo: $1.0E7
+Tarjeta - deuda: $0.0
+Crédito vivienda - pendiente: $1.2E8
+```
+
+Necesitó solo `ConExtracto`. No necesita conocer los demás métodos porque lo único que hace
+con cada producto es pedirle su texto; si dependiera de `depositar` o `pagarCuota`, no podría
+recibir a la vez cosas que tienen unos pero no otros. (Nota: `Main` sigue imprimiendo solo
+tarjeta y crédito, como el original, para que la salida no cambie.)

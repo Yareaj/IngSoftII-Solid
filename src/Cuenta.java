@@ -2,7 +2,7 @@
  * Lo que tienen en común todas las cuentas del banco: número, titular, saldo
  * y que pueden recibir dinero. No todas permiten retirar (ver CuentaTransaccional).
  */
-public abstract class Cuenta {
+public abstract class Cuenta implements ConExtracto {
     protected final String numero;
     protected final String titular;
     protected double saldo;
@@ -21,6 +21,9 @@ public abstract class Cuenta {
         if (monto <= 0) throw new IllegalArgumentException("Monto inválido");
         saldo += monto;
     }
+
+    @Override
+    public String generarExtracto() { return "Cuenta " + numero + " - saldo: $" + saldo; }
 
     /** Descuenta del saldo si alcanza. Solo para uso de las subclases. */
     protected void debitar(double monto) {
