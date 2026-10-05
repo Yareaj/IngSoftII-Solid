@@ -113,3 +113,38 @@ porque durante toda la vida útil del CDT lanza "no aplica", que es justo el pro
 ### 1.4 Diagrama de clases del código original
 
 Ver [`docs/uml-antes.md`](docs/uml-antes.md).
+
+## Bloque 2 — Refactorización
+
+En cada punto de control corrimos `./check.sh` (diff contra `salida_original.txt` ignorando la
+fecha de auditoría) antes de hacer el commit. Los cinco dieron `OK: el comportamiento no cambió`.
+
+### Punto de control S
+
+Partimos `transferir` en una clase por responsabilidad:
+
+| Responsabilidad original (comentario del código) | Ahora vive en |
+|---|---|
+| 1. Validación | `ValidadorMonto` |
+| 2. Cálculo de la comisión | `CalculadoraComision` (el `switch` se mudó aquí tal cual; lo arreglamos en O) |
+| 3. Movimiento del dinero | se queda en `TransaccionService` (es justo lo que coordina) |
+| 4. Persistencia | `OracleRepositorio` (ya existía) |
+| 5. Comprobante | `ImpresoraComprobante` |
+| 6. Notificación | `NotificadorSms` (arma el texto) + `SmsGateway` (lo envía) |
+| 7. Auditoría | `Auditoria` |
+
+También creamos el record `Transaccion` para no pasar `origen, destino, monto, comision, tipo,
+titular` sueltos a todas las clases.
+
+A propósito **todavía** dejamos los `new` dentro de `TransaccionService`: queríamos un commit
+que solo separara responsabilidades, para que el diff se pudiera leer. Eso es D.
+
+**Pregunta de control.** *¿Qué hace `TransaccionService`, en una frase?* "Coordina los pasos de
+una transferencia." Al principio escribimos "valida, cobra la comisión, mueve el dinero **y**
+avisa…" y nos dimos cuenta de que estábamos describiendo lo que hacen las otras clases; lo
+que hace ella es el orden. Nos quedó la duda de si "mover el dinero" (`origen.retirar` +
+`destino.depositar`) es otra responsabilidad: decidimos que no, porque son dos líneas que *son*
+la transferencia, y sacarlas a otra clase dejaría a `TransaccionService` vacía.
+
+*Si legal pide cambiar el formato del comprobante, ¿qué archivo tocan?* Solo
+`ImpresoraComprobante.java`.
