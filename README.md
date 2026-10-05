@@ -437,3 +437,24 @@ Lo que no nos gustó: el texto "Transferiste $X a la cuenta Y" quedó **repetido
 `NotificadorSms` y `NotificadorPush`. Lo vimos y decidimos dejarlo (son dos líneas y sacarlo
 implicaba tocar `NotificadorSms`), pero si el texto cambia hay que acordarse de cambiarlo en dos
 lugares. Lo anotamos como deuda.
+
+### R4 — Sistema antifraude
+
+- **Estimado en el original:** 1 existente (`TransaccionService.java`, otro `println` al final).
+- **Real:** 1 existente (`Main.java`) + 1 nuevo (`SistemaAntifraude.java`) + 1 de prueba
+  (`AntifraudeTest`, que captura la consola usando las clases reales `Auditoria` y
+  `SistemaAntifraude`).
+- Criterio de aceptación: la prueba verifica 1 `[AUDITORIA]` + 1 `[ANTIFRAUDE]` por transferencia
+  exitosa y 0 de cada uno si se rechaza. En `Main`:
+
+```
+11a13
+> [ANTIFRAUDE] Analizando OTRO_BANCO 001-1 -> 001-2 $150000.0 (comisión $7500.0)
+```
+
+Un riesgo que vimos (y no corregimos todavía): los observadores se llaman en orden y si uno
+lanza una excepción, los siguientes no se ejecutan. Como en `Main` el orden es SMS → push →
+auditoría → antifraude, **si el proveedor de SMS se cae, la transacción no se audita ni pasa por
+antifraude**, aunque la plata ya se movió. Para algo que es obligatorio por regulación eso es
+grave. En el original pasaba exactamente lo mismo (el SMS iba antes de la auditoría), pero ahora
+que antifraude es regulatorio pesa más. Lo discutimos en el cierre (pregunta c).
