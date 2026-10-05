@@ -152,6 +152,7 @@ classDiagram
     TransaccionService --> Comprobante
     TransaccionService --> ObservadorTransaccion
     TransaccionService --> Transaccion
+
     GeneradorExtractos --> ConExtracto
     CobroCuotaManejo --> CuentaTransaccional
     Main --> TransaccionService
