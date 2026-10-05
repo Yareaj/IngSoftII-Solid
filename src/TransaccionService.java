@@ -3,15 +3,19 @@
  */
 public class TransaccionService {
     private final ValidadorMonto validador = new ValidadorMonto();
-    private final CalculadoraComision calculadora = new CalculadoraComision();
+    private final CatalogoComisiones comisiones;
     private final OracleRepositorio repositorio = new OracleRepositorio();
     private final ImpresoraComprobante comprobante = new ImpresoraComprobante();
     private final NotificadorSms notificador = new NotificadorSms();
     private final Auditoria auditoria = new Auditoria();
 
+    public TransaccionService(CatalogoComisiones comisiones) {
+        this.comisiones = comisiones;
+    }
+
     public void transferir(Cuenta origen, Cuenta destino, double monto, String tipo) {
         validador.validar(monto);
-        double comision = calculadora.calcular(tipo, monto);
+        double comision = comisiones.calcular(tipo, monto);
 
         origen.retirar(monto + comision);
         destino.depositar(monto);

@@ -148,3 +148,31 @@ la transferencia, y sacarlas a otra clase dejaría a `TransaccionService` vacía
 
 *Si legal pide cambiar el formato del comprobante, ¿qué archivo tocan?* Solo
 `ImpresoraComprobante.java`.
+
+### Punto de control O
+
+Reemplazamos el `switch` por la interfaz `PoliticaComision` con tres implementaciones
+(`SinComision`, `ComisionFija`, `ComisionPorcentual`) y un `CatalogoComisiones` que relaciona el
+nombre del tipo (`"OTRO_BANCO"`) con su política. El catálogo se arma en `Main` y se le pasa a
+`TransaccionService` por el constructor.
+
+Primero pensamos en hacer una clase por tipo (`ComisionOtroBanco`, `ComisionInternacional`…),
+pero vimos que `OTRO_BANCO` es simplemente "una tarifa fija de 7.500", así que preferimos
+clases por **forma de cobrar** con el valor como parámetro. Así, si el banco sube la tarifa,
+se cambia un número en `Main`, no una clase.
+
+Algo que no esperábamos: para que agregar un tipo nuevo solo toque `Main`, el catálogo tenía
+que venir de afuera. O sea que en este punto ya tuvimos que inyectar una dependencia por
+constructor (adelantándonos un poco a D). Las demás las dejamos con `new` hasta D.
+
+Mantuvimos el tipo como `String` (y no un `enum`) porque un `enum` volvería a obligar a editar
+un archivo existente cada vez que llega un tipo. El costo es que un tipo mal escrito solo se
+detecta en ejecución ("Tipo de transferencia desconocido"), igual que antes.
+
+**Pregunta de control.** *Si mañana llega un tipo nuevo, ¿qué archivos existentes hay que
+modificar?*
+
+- Si su comisión es de una forma que ya existe (gratis, fija o porcentaje + fijo): **solo
+  `Main.java`** (una línea `.registrar(...)`). Cero archivos nuevos.
+- Si es una forma nueva de calcular (p. ej. por rangos de monto): un archivo nuevo que
+  implemente `PoliticaComision` y una línea en `Main.java`. Ningún otro existente.
