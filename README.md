@@ -495,3 +495,45 @@ hubiera tocado 4 archivos y nosotros tocamos 6. La diferencia está en *cuáles*
   y `TransaccionService` **no se modificó ni una vez** en todo el bloque 4.
 - El único requerimiento que nos obligó a tocar lógica existente fue R2, y fue por una falla de
   nuestro diseño (ver arriba), no del requerimiento.
+
+## Bloque 5 — Revisión cruzada
+
+### Requerimiento implementado
+
+Se implementó el **R6: pago de servicios**. A diferencia de una transferencia, esta operación no
+usa una cuenta destino, sino una referencia de factura/servicio como dato principal del pago.
+
+### Lista de revisión
+
+| Lista de revisión | Sí | No |
+|---|:---:|:---:|
+| Entendimos qué hace cada clase leyendo solo su nombre y sus métodos públicos. | X | |
+| Pudimos reutilizar piezas existentes sin copiar y pegar código. | X | |
+| Implementamos el requerimiento sin modificar innecesariamente la lógica de las clases existentes. | X | |
+| No encontramos métodos vacíos ni que lancen “no aplica”. | X | |
+| No encontramos if/switch por tipo que tuviéramos que extender. | X | |
+| Las pruebas existentes siguieron pasando después de nuestro cambio. | X | |
+| No encontramos abstracciones innecesarias (interfaces que no aportan). | | X |
+
+### Lo mejor del diseño
+
+El diseño quedó bastante desacoplado y permitió reutilizar piezas existentes como el manejo de
+comisiones, comprobantes, repositorio y observadores. Para implementar R6 no fue necesario copiar
+ni modificar ampliamente `TransaccionService`. Tampoco hizo falta ampliar `if`/`switch` por tipo y
+las pruebas existentes siguieron pasando.
+
+### Lo que nos costó entender o extender
+
+Lo más difícil fue que `TransaccionService` está orientado a transferencias entre cuentas, mientras
+que el pago de servicios no tiene cuenta destino sino una referencia de factura. Por eso no encaja
+completamente en el mismo flujo.
+
+Como mejora, conviene separar mejor el flujo común de las operaciones/transacciones (validación,
+comisión, persistencia, comprobante, notificación y auditoría) de los detalles específicos de cada
+operación bancaria, sin forzar a todas a usar los mismos conceptos. También queda pendiente revisar
+la abstracción `ProductoCredito`, ya que actualmente se utiliza poco.
+
+### Conclusión de la revisión
+
+En general, el diseño es bastante desacoplado y extensible, pero todavía puede mejorar la
+separación entre el flujo común y los detalles específicos de cada operación bancaria.
